@@ -88,17 +88,17 @@ while True:
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
 
-    with open("/data/corpus.txt", "w+") as fp:
+    with open("/data/corpus.txt", "a") as fp:
         for f in following:
             for t in get_toots(client, f.id):
                 fp.write(t + "\n")
 
+    # publishing toot
     with open("/data/corpus.txt") as fp:
         model = markovify.NewlineText(fp.read())
-
-    print("tooting")
     sentence = None
     # you will make that damn sentence
     while sentence is None:
         sentence = model.make_sentence(tries=100000)
+    print("tooting:", model)    
     client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
