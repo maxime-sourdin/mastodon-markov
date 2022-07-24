@@ -4,11 +4,14 @@ from mastodon import Mastodon
 spoiler_text = os.environ['cw']
 visibility = os.environ['visibility']
 api_base_url = "https://botsin.space"
-client_id = os.environ['clientcred.secret']
-access_token = os.environ['usercred.secret']
+
+client_id = os.environ['clientid.secret']
+client_secret = os.environ['clientsecret.secret']
+access_token = os.environ['accesstoken.secret']
 
 client = Mastodon(
         client_id=client_id,
+        client_secret=client_secret,
         access_token=access_token,
         api_base_url=api_base_url)
 
