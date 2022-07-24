@@ -1,7 +1,6 @@
 from mastodon import Mastodon
-from os
 from bs4 import BeautifulSoup
-import re
+import re,os
 
 api_base_url = "https://botsin.space"
 scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
