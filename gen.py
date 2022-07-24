@@ -4,13 +4,15 @@ from mastodon import Mastodon
 spoiler_text = os.environ['cw']
 visibility = os.environ['visibility']
 api_base_url = "https://botsin.space"
+client_id = os.environ['clientcred.secret']
+access_token = os.environ['usercred.secret']
 
 client = Mastodon(
-        client_id="cred/clientcred.secret",
-        access_token="cred/usercred.secret",
+        client_id=client_id,
+        access_token=access_token,
         api_base_url=api_base_url)
 
-with open("corpus.txt") as fp:
+with open("/data/corpus.txt") as fp:
     model = markovify.NewlineText(fp.read())
 
 print("tooting")

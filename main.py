@@ -1,5 +1,5 @@
 from mastodon import Mastodon
-from os import path
+from os
 from bs4 import BeautifulSoup
 import re
 
@@ -75,16 +75,18 @@ def get_toots(client, id):
         if i%10 == 0:
             print(i)
 
+client_id = os.environ['clientcred.secret']
+access_token = os.environ['usercred.secret']
+
 client = Mastodon(
-        client_id="cred/clientcred.secret",
-        access_token="cred/usercred.secret",
+        client_id=client_id,
+        access_token=access_token,
         api_base_url=api_base_url)
 
 me = client.account_verify_credentials()
 following = client.account_following(me.id)
 
-with open("corpus.txt", "w+") as fp:
+with open("/data/corpus.txt", "w+") as fp:
     for f in following:
-        print(f.username)
         for t in get_toots(client, f.id):
             fp.write(t + "\n")
