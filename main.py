@@ -1,10 +1,6 @@
 from mastodon import Mastodon
 from bs4 import BeautifulSoup
-import re,os
-
-api_base_url = "https://botsin.space"
-scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
-
+import re,os, markovify, json, time
 #if not path.exists("clientcred.secret"):
 #        print("No clientcred.secret, registering application")
 #        Mastodon.create_app("ebooks", api_base_url=api_base_url, to_file="cred/clientcred.secret", scopes=scopes)
@@ -74,20 +70,35 @@ def get_toots(client, id):
         if i%10 == 0:
             print(i)
 
-client_id = os.environ['clientid.secret']
-client_secret = os.environ['clientsecret.secret']
-access_token = os.environ['accesstoken.secret']
+while True:
+    api_base_url = "https://botsin.space"
+    scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
+    spoiler_text = os.environ['cw']
+    visibility = os.environ['visibility']
+    client_id = os.environ['clientid.secret']
+    client_secret = os.environ['clientsecret.secret']
+    access_token = os.environ['accesstoken.secret']
 
-client = Mastodon(
-        client_id=client_id,
-        client_secret=client_secret,
-        access_token=access_token,
-        api_base_url=api_base_url)
+    client = Mastodon(
+            client_id=client_id,
+            client_secret=client_secret,
+            access_token=access_token,
+            api_base_url=api_base_url)
 
-me = client.account_verify_credentials()
-following = client.account_following(me.id)
+    me = client.account_verify_credentials()
+    following = client.account_following(me.id)
 
-with open("/data/corpus.txt", "w+") as fp:
-    for f in following:
-        for t in get_toots(client, f.id):
-            fp.write(t + "\n")
+    with open("/data/corpus.txt", "w+") as fp:
+        for f in following:
+            for t in get_toots(client, f.id):
+                fp.write(t + "\n")
+
+    with open("/data/corpus.txt") as fp:
+        model = markovify.NewlineText(fp.read())
+
+    print("tooting")
+    sentence = None
+    # you will make that damn sentence
+    while sentence is None:
+        sentence = model.make_sentence(tries=100000)
+    client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
