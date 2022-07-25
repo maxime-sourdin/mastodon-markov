@@ -2,17 +2,6 @@ from mastodon import Mastodon, StreamListener
 from bs4 import BeautifulSoup
 import re,os, markovify, json, threading, random, time, datetime
 
-#if not path.exists("clientcred.secret"):
-#        print("No clientcred.secret, registering application")
-#        client.create_app("ebooks", api_base_url=api_base_url, to_file="cred/clientcred.secret", scopes=scopes)
-
-#if not path.exists("usercred.secret"):
-#        print("No usercred.secret, registering application")
-#        email = input("Email: ")
-#        password = getpass("Password: ")
-#        client = Mastodon(client_id="clientcred.secret", api_base_url=api_base_url)
-#        client.log_in(email, password, to_file="cred/usercred.secret", scopes=scopes)
-
 def parse_toot(toot):
     if toot.spoiler_text != "": return
     if toot.reblog is not None: return
@@ -125,6 +114,8 @@ if __name__ == "__main__":
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
     while True:
+        if os.stat('/data/corpus.txt').st_size == 0:
+            job(client)
         reply(client)    
         job(client)
         time.sleep(sleep_duration)
