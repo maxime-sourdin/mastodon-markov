@@ -39,7 +39,7 @@ jobs:
       - name: Docker login
         uses: docker/login-action@v2
         with:
-          registry: repo-docker.sourdin.ovh
+          registry: ${{ secrets.REGISTRY_NAME }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: get tags
