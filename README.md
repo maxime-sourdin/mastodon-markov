@@ -16,10 +16,10 @@ Attention, il faut bien donner au bot les droits **write** et **read** .
 
 ### Comment ça déploie
 #### Via un Helm Chart
-J'ai fourni un exemple zippé dans le repo. Rien ne fonctionne en root sur le helm chart.
+J'ai fourni (https://github.com/maxime-sourdin/mastodon-markov/blob/main/helm.zip)[un exemple zippé dans le repo]. Rien ne fonctionne en root sur le helm chart.
 
 #### Via Docker-Compose
-Vous trouverez le docker-compose.yml dans le repo, pensez à bien build votre image de votre côté, la mienne n'est pas publique.
+Vous trouverez le (https://github.com/maxime-sourdin/mastodon-markov/blob/main/docker-compose.yml)[docker-compose.yml] dans le repo, pensez à bien build votre image de votre côté, la mienne n'est pas publique.
 	
 ### Précisions
 Vous pouvez régler la visibilité des toots, le temps entre chaque toot et le ContentWarning dans les variables.
@@ -40,10 +40,12 @@ Be careful, you have to give the bot the **write** and **read** rights.
 
 ### How to deploy it
 #### Via a Helm Chart
-I have provided a zipped example in the repo. Nothing is running in root on the helm chart.
+I have provided (https://github.com/maxime-sourdin/mastodon-markov/blob/main/helm.zip)[a zipped example in the repo].
+
+Nothing is running in root on the helm chart.
 
 #### Via Docker-Compose
-You can find the docker-compose.yml in the repo, remember to build your own image, mine is not public.
+You can find the (https://github.com/maxime-sourdin/mastodon-markov/blob/main/docker-compose.yml)[docker-compose.yml] in the repo, remember to build your own image, mine is not public.
 	
 ### Precisions
 You can set the visibility of toots, the time between each toot and the ContentWarning in the variables.
