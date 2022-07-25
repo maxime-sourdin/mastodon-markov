@@ -37,7 +37,7 @@ jobs:
           version: latest
 
       - name: Docker login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: repo-docker.sourdin.ovh
           username: ${{ secrets.REGISTRY_USERNAME }}
