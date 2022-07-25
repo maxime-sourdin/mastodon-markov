@@ -87,7 +87,7 @@ def job(client):
     while sentence is None:
         sentence = model.make_sentence(tries=100000)
 
-    print("Bot shitposting...", sentence)  
+    print("Bot shitposting...")  
     client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
 
 def reply(client):
@@ -103,7 +103,7 @@ def reply(client):
             reply = replies[0]
             time.sleep(15)
             status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
-        print("Bot responds to mention...", status)
+        print("Bot responds to mention...")
         client.notifications_clear()
         client.notifications()
         
