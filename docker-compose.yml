@@ -1,0 +1,16 @@
+version: '2'
+services:
+  rss-bridge:
+    container_name: mastodon-ebooks
+    volumes:
+      - ./data/:/data
+      - "/etc/localtime:/etc/localtime:ro"
+    image: markov:1.00
+    restart: always
+    environnement:
+       clientid.secret: "APP_ID"
+       clientsecret.secret: "SECRETKEY"
+       accesstoken.secret: "ACCESS_TOKEN"
+       visiblity: "unlisted"
+       cw: "markov bot"
+       sleep_duration: "7200.5"       
