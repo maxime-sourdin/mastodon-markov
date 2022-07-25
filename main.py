@@ -84,7 +84,7 @@ def get_toots(client, id):
         if i%10 == 0:
             print(i)
 
-def job()
+def job():
     logging.info("Background 1 thread running...")
     api_base_url = "https://botsin.space"
     scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
