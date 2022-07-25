@@ -44,7 +44,6 @@ def parse_toot(toot):
 
     # next up: store this and patch markovify to take it
     # return {"text": text, "mentions": mentions, "links": links}
-    # it's 4am though so we're not doing that now, but i still want the parser updates
     return "\0".join(list(text))
 
 def get_toots(client, id):
@@ -114,8 +113,8 @@ if __name__ == "__main__":
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
     while True:
+        reply(client)
+    while True:
         if os.stat('/data/corpus.txt').st_size == 0:
             job(client)
-        reply(client)    
-        job(client)
         time.sleep(sleep_duration)
