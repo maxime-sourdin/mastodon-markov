@@ -9,4 +9,4 @@ RUN apk update \
 USER 1000
 COPY --chown=worker:worker main.py /ebooks/main.py
 ENV PATH $PATH:$HOME/.local/bin
-RUN pip3 install --no-cache-dir Mastodon.py markovify beautifulsoup4 schedule
+RUN pip3 install --no-cache-dir Mastodon.py markovify beautifulsoup4 schedule requests
