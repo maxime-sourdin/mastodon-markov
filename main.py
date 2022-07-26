@@ -48,7 +48,7 @@ def parse_toot(toot):
 
 def get_toots(client, id):
     i = 0
-    toots = client.account_statuses(id)
+    toots = client.account_statuses(id,only_media=False,pinned=False,exclude_replies=False)
     while toots is not None and len(toots) > 0:
         for toot in toots:
             print(toot)
