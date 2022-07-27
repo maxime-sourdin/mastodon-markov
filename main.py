@@ -81,7 +81,6 @@ def reply(client):
     replies = [line.strip().replace("\\n", "\n")
                for line in open("/data/corpus.txt").readlines()]
     notifications = client.notifications()
-
     for notification in notifications:
         while notifications is not None:
             n_id = notification["id"]
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
     while True:
-        job(client)
+        reply(client)
         while True:        
-            reply(client)
+            job(client)
             time.sleep(sleep_duration)
