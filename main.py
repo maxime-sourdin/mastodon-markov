@@ -76,7 +76,7 @@ def reply(client):
                 for line in open("/data/corpus.txt").readlines()] 
         notifications = client.notifications()    
         for notification in notifications:
-            while notifications is not None:
+            while notification is not None:
                 n_id = notification["id"]
                 n_acct = notification.account.acct
                 if notification.type == "mention":
