@@ -82,7 +82,6 @@ def reply(client):
                for line in open("/data/corpus.txt").readlines()]
     notifications = client.notifications()
 
-    while toots is not None and len(toots) > 0:
     for notification in notifications:
         while notifications is not None:
             n_id = notification["id"]
