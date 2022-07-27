@@ -106,8 +106,8 @@ if __name__ == "__main__":
     following = client.account_following(me.id)
 
     # threading
-    answer = threading.Thread(target=reply, args=(client))
-    generate = threading.Thread(target=job, args=(client))
+    answer = threading.Thread(target=reply, args=(client,))
+    generate = threading.Thread(target=job, args=(client,))
     answer.start()
     generate.start()
     generate.join()
