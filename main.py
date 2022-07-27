@@ -43,7 +43,6 @@ def get_toots(client, id):
     toots = client.account_statuses(id,only_media=False,pinned=False,exclude_replies=False)
     while toots is not None and len(toots) > 0:
         for toot in toots:
-            print(toot)
             t = parse_toot(toot)
             if t != None:
                 yield t
@@ -63,29 +62,29 @@ def job(client):
         with open("/data/corpus.txt") as fp:
             model = markovify.NewlineText(fp.read())
         sentence = None
-        # you will make that damn sentence
         while sentence is None:
             sentence = model.make_sentence(tries=100000)  
         status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
         print("WRYYYYYYYYYYYYYYYYYY", status)
         time.sleep(sleep_duration)
   
+
 def reply(client):
-    while True:
+    while True: 
         replies = [line.strip().replace("\\n", "\n")
-                for line in open("/data/corpus.txt").readlines()] 
-        notifications = client.notifications()    
-        for notification in notifications:
-            while notification is not None:
-                n_id = notification["id"]
-                n_acct = notification.account.acct
-                if notification.type == "mention":
-                    random.shuffle(replies)
-                    reply = replies[0]
-                    time.sleep(15)
-                    status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
-                    client.notifications_dismiss(n_id)
-                    print("MUDA MUDA MUDA:", status)
+                for line in open("/data/corpus.txt").readlines()]
+        notifications = client.notifications()
+
+        for notification in notifications:    
+            n_id = notification["id"]
+            n_acct = notification.account.acct
+            if notification.type == "mention":
+                random.shuffle(replies)
+                reply = replies[0]
+                time.sleep(15)
+                status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
+            print("MUDA MUDA MUDA", n_acct)  
+            client.notifications_dismiss(n_id)    
         
 if __name__ == "__main__":
     api_base_url = "https://botsin.space"
