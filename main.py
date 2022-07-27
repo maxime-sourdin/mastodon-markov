@@ -53,37 +53,39 @@ def get_toots(client, id):
             print(i)
 
 def job(client):
-    scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
-    with open("/data/corpus.txt", "a") as fp:
-        for f in following:
-            for t in get_toots(client, f.id):
-                fp.write(t + "\n")
-    # publishing toot
-    with open("/data/corpus.txt") as fp:
-        model = markovify.NewlineText(fp.read())
-    sentence = None
-    # you will make that damn sentence
-    while sentence is None:
-        sentence = model.make_sentence(tries=100000)  
-    status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
-    print("WRYYYYYYYYYYYYYYYYYY", status)
-    time.sleep(sleep_duration)
+    while True: 
+        scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
+        with open("/data/corpus.txt", "a") as fp:
+            for f in following:
+                for t in get_toots(client, f.id):
+                    fp.write(t + "\n")
+        # publishing toot
+        with open("/data/corpus.txt") as fp:
+            model = markovify.NewlineText(fp.read())
+        sentence = None
+        # you will make that damn sentence
+        while sentence is None:
+            sentence = model.make_sentence(tries=100000)  
+        status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
+        print("WRYYYYYYYYYYYYYYYYYY", status)
+        time.sleep(sleep_duration)
   
 def reply(client):
-    replies = [line.strip().replace("\\n", "\n")
-               for line in open("/data/corpus.txt").readlines()] 
-    notifications = client.notifications()    
-    for notification in notifications:
-        while notifications is not None:
-            n_id = notification["id"]
-            n_acct = notification.account.acct
-            if notification.type == "mention":
-                random.shuffle(replies)
-                reply = replies[0]
-                time.sleep(15)
-                status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
-                client.notifications_dismiss(n_id)
-                print("MUDA MUDA MUDA:", status)
+    while True:
+        replies = [line.strip().replace("\\n", "\n")
+                for line in open("/data/corpus.txt").readlines()] 
+        notifications = client.notifications()    
+        for notification in notifications:
+            while notifications is not None:
+                n_id = notification["id"]
+                n_acct = notification.account.acct
+                if notification.type == "mention":
+                    random.shuffle(replies)
+                    reply = replies[0]
+                    time.sleep(15)
+                    status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
+                    client.notifications_dismiss(n_id)
+                    print("MUDA MUDA MUDA:", status)
         
 if __name__ == "__main__":
     api_base_url = "https://botsin.space"
@@ -106,9 +108,7 @@ if __name__ == "__main__":
     # threading
     answer = threading.Thread(target=reply, args=(client))
     generate = threading.Thread(target=job, args=(client))
-
-    while True:
-       answer.start()
-       generate.start()
-       generate.join()
-       answer.join()
+    answer.start()
+    generate.start()
+    generate.join()
+    answer.join()
