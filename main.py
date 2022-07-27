@@ -62,11 +62,10 @@ def get_toots(client, id):
 
 def job(client):
     scopes = ["read:statuses", "read:accounts", "read:follows", "write:statuses"]
-    if os.stat('/data/corpus.txt').st_size == 0:
-        with open("/data/corpus.txt", "a") as fp:
-            for f in following:
-                for t in get_toots(client, f.id):
-                    fp.write(t + "\n")
+    with open("/data/corpus.txt", "a") as fp:
+        for f in following:
+            for t in get_toots(client, f.id):
+                fp.write(t + "\n")
     # publishing toot
     with open("/data/corpus.txt") as fp:
         model = markovify.NewlineText(fp.read())
