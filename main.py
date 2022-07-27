@@ -65,18 +65,18 @@ def reply(client):
     while True: 
         with open("/data/corpus.txt") as fp:
             model = markovify.NewlineText(fp.read())
-        sentence = None
-        notifications = client.notifications()
-        for notification in notifications:
-            while sentence is None:
-                sentence = model.make_sentence(tries=100000)
-            reply = sentence.replace("\0", "\n")            
-            n_id = notification["id"]
-            n_acct = notification.account.acct
-            if notification.type == "mention":
-                status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
-            print("MUDA MUDA MUDA", n_acct)  
-            client.notifications_dismiss(n_id)    
+            sentence = None
+            notifications = client.notifications()
+            for notification in notifications:
+                while sentence is None:
+                    sentence = model.make_sentence(tries=100000)
+                reply = sentence.replace("\0", "\n")            
+                n_id = notification["id"]
+                n_acct = notification.account.acct
+                if notification.type == "mention":
+                    status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
+                    client.notifications_dismiss(n_id)  
+                    print("MUDA MUDA MUDA", n_acct)
         
 if __name__ == "__main__":
     api_base_url = "https://botsin.space"
