@@ -74,7 +74,7 @@ def job(client):
     while sentence is None:
         sentence = model.make_sentence(tries=100000)
 
-    print("Bot shitposting...")  
+    print("WRYYYYYYYYYYYYYYYYYY")  
     client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
 
 def reply(client):
@@ -82,17 +82,18 @@ def reply(client):
                for line in open("/data/corpus.txt").readlines()]
     notifications = client.notifications()
 
-    for notification in notifications:    
-        n_id = notification["id"]
-        n_acct = notification.account.acct
-        if notification.type == "mention":
-            random.shuffle(replies)
-            reply = replies[0]
-            time.sleep(15)
-            status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
-        print("Bot responds to mention...")
-        client.notifications_clear()
-        client.notifications()
+    while toots is not None and len(toots) > 0:
+    for notification in notifications:
+        while notifications is not None:
+            n_id = notification["id"]
+            n_acct = notification.account.acct
+            if notification.type == "mention":
+                random.shuffle(replies)
+                reply = replies[0]
+                time.sleep(15)
+                status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
+                client.notifications_dismiss(n_id)
+            print("MUDA MUDA MUDA")
         
 if __name__ == "__main__":
     api_base_url = "https://botsin.space"
@@ -113,5 +114,6 @@ if __name__ == "__main__":
     following = client.account_following(me.id)
     while True:
         job(client)
-        reply(client)
-        time.sleep(sleep_duration)
+        while True:        
+            reply(client)
+            time.sleep(sleep_duration)
