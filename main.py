@@ -1,20 +1,12 @@
 from mastodon import Mastodon, StreamListener
 from bs4 import BeautifulSoup
-import re,os, markovify, json, threading, random, time, datetime
+import re,os, markovify, json, threading, random, time, datetime, threading
 
 def parse_toot(toot):
     if toot.spoiler_text != "": return
     if toot.reblog is not None: return
     if toot.visibility not in ["public", "unlisted"]: return
-
     soup = BeautifulSoup(toot.content, "html.parser")
-
-    # pull the mentions out
-    # for mention in soup.select("span.h-card"):
-    #     mention.unwrap()
-
-    # for mention in soup.select("a.u-url.mention"):
-    #     mention.unwrap()
 
     # we will destroy the mentions until we're ready to use them
     # someday turbocat, you will talk to your sibilings
@@ -72,15 +64,15 @@ def job(client):
     sentence = None
     # you will make that damn sentence
     while sentence is None:
-        sentence = model.make_sentence(tries=100000)
-
-    print("WRYYYYYYYYYYYYYYYYYY")  
-    client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
-
+        sentence = model.make_sentence(tries=100000)  
+    status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
+    print("WRYYYYYYYYYYYYYYYYYY", status)
+    time.sleep(sleep_duration)
+  
 def reply(client):
     replies = [line.strip().replace("\\n", "\n")
-               for line in open("/data/corpus.txt").readlines()]
-    notifications = client.notifications()
+               for line in open("/data/corpus.txt").readlines()] 
+    notifications = client.notifications()    
     for notification in notifications:
         while notifications is not None:
             n_id = notification["id"]
@@ -91,7 +83,7 @@ def reply(client):
                 time.sleep(15)
                 status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility)
                 client.notifications_dismiss(n_id)
-            print("MUDA MUDA MUDA")
+                print("MUDA MUDA MUDA:", status)
         
 if __name__ == "__main__":
     api_base_url = "https://botsin.space"
@@ -110,8 +102,13 @@ if __name__ == "__main__":
             api_base_url=api_base_url)
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
+
+    # threading
+    answer = threading.Thread(target=reply, args=(client))
+    generate = threading.Thread(target=job, args=(client))
+
     while True:
-        reply(client)
-        while True:        
-            job(client)
-            time.sleep(sleep_duration)
+       answer.start()
+       generate.start()
+       generate.join()
+       answer.join()
