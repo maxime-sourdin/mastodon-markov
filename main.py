@@ -41,29 +41,31 @@ def get_toots(client, id):
                 yield t
         toots = client.fetch_next(toots)
         i += 1
-        if i%10 == 0:
-            print(i)
 
-def job(client):
-    while True: 
-        with open("/data/corpus.txt", "a") as fp:
+def writetoot(client):
+    while True:
+        # Get toots and store it on file
+        with open(corpus_location, "a") as fp:
             for f in following:
                 for t in get_toots(client, f.id):
+                    
                     fp.write(t + "\n")
+
+def job(client): 
+    while True: 
         # publishing toot
-        with open("/data/corpus.txt") as fp:
+        with open(corpus_location) as fp:
             model = markovify.NewlineText(fp.read())
         sentence = None
         while sentence is None:
             sentence = model.make_sentence(tries=100000)  
         status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
-        print("WRYYYYYYYYYYYYYYYYYY", status)
         time.sleep(sleep_duration)
   
 
 def reply(client):
     while True: 
-        with open("/data/corpus.txt") as fp:
+        with open(corpus_location) as fp:
             model = markovify.NewlineText(fp.read())
             sentence = None
             notifications = client.notifications()
@@ -75,25 +77,44 @@ def reply(client):
                 n_acct = notification.account.acct
                 if notification.type == "mention":
                     status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
-                    client.notifications_dismiss(n_id)  
-                    print("MUDA MUDA MUDA", n_acct)
+                    client.notifications_dismiss(n_id)
         
 if __name__ == "__main__":
+    print(r"""
+    ⣿⣿⣿⣿⣿⣿⣿⡿⡛⠟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+    ⣿⣿⣿⣿⣿⣿⠿⠨⡀⠄⠄⡘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+    ⣿⣿⣿⣿⠿⢁⠼⠊⣱⡃⠄⠈⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+    ⣿⣿⡿⠛⡧⠁⡴⣦⣔⣶⣄⢠⠄⠄⠹⣿⣿⣿⣿⣿⣿⣿⣤⠭⠏⠙⢿⣿⣿⣿⣿⣿
+    ⣿⡧⠠⠠⢠⣾⣾⣟⠝⠉⠉⠻⡒⡂⠄⠙⠻⣿⣿⣿⣿⣿⡪⠘⠄⠉⡄⢹⣿⣿⣿⣿
+    ⣿⠃⠁⢐⣷⠉⠿⠐⠑⠠⠠⠄⣈⣿⣄⣱⣠⢻⣿⣿⣿⣿⣯⠷⠈⠉⢀⣾⣿⣿⣿⣿
+    ⣿⣴⠤⣬⣭⣴⠂⠇⡔⠚⠍⠄⠄⠁⠘⢿⣷⢈⣿⣿⣿⣿⡧⠂⣠⠄⠸⡜⡿⣿⣿⣿
+    ⣿⣇⠄⡙⣿⣷⣭⣷⠃⣠⠄⠄⡄⠄⠄⠄⢻⣿⣿⣿⣿⣿⣧⣁⣿⡄⠼⡿⣦⣬⣰⣿
+    ⣿⣷⣥⣴⣿⣿⣿⣿⠷⠲⠄⢠⠄⡆⠄⠄⠄⡨⢿⣿⣿⣿⣿⣿⣎⠐⠄⠈⣙⣩⣿⣿
+    ⣿⣿⣿⣿⣿⣿⢟⠕⠁⠈⢠⢃⢸⣿⣿⣶⡘⠑⠄⠸⣿⣿⣿⣿⣿⣦⡀⡉⢿⣧⣿⣿
+    ⣿⣿⣿⣿⡿⠋⠄⠄⢀⠄⠐⢩⣿⣿⣿⣿⣦⡀⠄⠄⠉⠿⣿⣿⣿⣿⣿⣷⣨⣿⣿⣿
+    ⣿⣿⣿⡟⠄⠄⠄⠄⠄⠋⢀⣼⣿⣿⣿⣿⣿⣿⣿⣶⣦⣀⢟⣻⣿⣿⣿⣿⣿⣿⣿⣿
+    ⣿⣿⣿⡆⠆⠄⠠⡀⡀⠄⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+    ⣿⣿⡿⡅⠄⠄⢀⡰⠂⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ 
+    """)
     api_base_url = "https://botsin.space"
     spoiler_text = os.environ['cw']
     visibility = os.environ['visibility']
     client_id = os.environ['clientid.secret']
     client_secret = os.environ['clientsecret.secret']
     access_token = os.environ['accesstoken.secret']
-    sleep_duration = os.environ['sleep_duration']
+    sleep_duration = os.environ['sleep_duration']    
+    corpus_location = os.environ['corpus_location'] 
     sleep_duration=float(sleep_duration)
     client = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
     me = client.account_verify_credentials()
     following = client.account_following(me.id)
     # threading
+    get = threading.Thread(target=writetoot, args=(client,))    
     answer = threading.Thread(target=reply, args=(client,))
     generate = threading.Thread(target=job, args=(client,))
+    get.start()
     answer.start()
     generate.start()
     generate.join()
     answer.join()
+    get.join()
