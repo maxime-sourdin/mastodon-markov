@@ -65,21 +65,21 @@ def job(client):
 def reply(client):
     while True:
             notifications = client.notifications()
-            for notification in notifications:
-                reply = sentence.replace("\0", "\n")            
+            for notification in notifications:            
                 n_id = notification["id"]
                 n_acct = notification.account.acct
                 if notification.type == "mention":
                     with open(corpus_location) as fp:
                         model = markovify.NewlineText(fp.read())
-                        sentence = None                
+                        sentence = None               
                         while sentence is None:
-                            sentence = model.make_sentence(tries=10000000)                    
+                            sentence = model.make_sentence(tries=10000000)
+                            reply = sentence.replace("\0", "\n")                  
                             status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
                             client.notifications_dismiss(n_id)
+                            print("notif", n_id, "treated")
                             print("sleeping 60 seconds...")
                             time.sleep(60)
-                            print("notif", n_id, "treated")
         
 if __name__ == "__main__":
     print(r"""
