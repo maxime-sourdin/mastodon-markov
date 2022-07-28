@@ -8,5 +8,6 @@ RUN apk update \
     && chown -R worker:worker /ebooks
 USER 1000
 COPY --chown=worker:worker main.py /ebooks/main.py
+COPY --chown=worker:worker clean.py /ebooks/clean.py
 ENV PATH $PATH:$HOME/.local/bin
 RUN pip3 install --no-cache-dir Mastodon.py markovify beautifulsoup4
