@@ -48,7 +48,8 @@ def writetoot(client):
                 for t in get_toots(client, f.id):
                     fp.write(t + "\n")
 def job(client): 
-    while True: 
+    while True:
+        time.sleep(sleep_duration)        
         # publishing toot
         with open(corpus_location) as fp:
             model = markovify.NewlineText(fp.read())
@@ -57,7 +58,6 @@ def job(client):
             sentence = model.make_sentence(tries=1000000000)  
         status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
         print("publishing.... (every", sleep_duration, "s)")
-        time.sleep(sleep_duration)
 def reply(client):
     while True:
             notifications = client.notifications()
