@@ -30,7 +30,6 @@ def parse_toot(toot):
     # next up: store this and patch markovify to take it
     # return {"text": text, "mentions": mentions, "links": links}
     return "\0".join(list(text))
-
 def get_toots(client, id):
     i = 0
     toots = client.account_statuses(id,only_media=False,pinned=False,exclude_replies=True)
@@ -41,7 +40,6 @@ def get_toots(client, id):
                 yield t
         toots = client.fetch_next(toots)
         i += 1
-
 def writetoot(client):
     while True:
         # Get toots and store it on file
@@ -49,10 +47,8 @@ def writetoot(client):
             for f in following:
                 for t in get_toots(client, f.id):
                     fp.write(t + "\n")
-
 def job(client): 
     while True: 
-        time.sleep(sleep_duration)        
         # publishing toot
         with open(corpus_location) as fp:
             model = markovify.NewlineText(fp.read())
@@ -61,7 +57,7 @@ def job(client):
             sentence = model.make_sentence(tries=1000000000)  
         status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
         print("publishing.... (every", sleep_duration, "s)")
-
+        time.sleep(sleep_duration)
 def reply(client):
     while True:
             notifications = client.notifications()
@@ -80,24 +76,7 @@ def reply(client):
                             print("notif", n_id, "treated")
                             print("sleeping 60 seconds...")
                             time.sleep(60)
-        
 if __name__ == "__main__":
-    print(r"""
-    ⣿⣿⣿⣿⣿⣿⣿⡿⡛⠟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-    ⣿⣿⣿⣿⣿⣿⠿⠨⡀⠄⠄⡘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-    ⣿⣿⣿⣿⠿⢁⠼⠊⣱⡃⠄⠈⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-    ⣿⣿⡿⠛⡧⠁⡴⣦⣔⣶⣄⢠⠄⠄⠹⣿⣿⣿⣿⣿⣿⣿⣤⠭⠏⠙⢿⣿⣿⣿⣿⣿
-    ⣿⡧⠠⠠⢠⣾⣾⣟⠝⠉⠉⠻⡒⡂⠄⠙⠻⣿⣿⣿⣿⣿⡪⠘⠄⠉⡄⢹⣿⣿⣿⣿
-    ⣿⠃⠁⢐⣷⠉⠿⠐⠑⠠⠠⠄⣈⣿⣄⣱⣠⢻⣿⣿⣿⣿⣯⠷⠈⠉⢀⣾⣿⣿⣿⣿
-    ⣿⣴⠤⣬⣭⣴⠂⠇⡔⠚⠍⠄⠄⠁⠘⢿⣷⢈⣿⣿⣿⣿⡧⠂⣠⠄⠸⡜⡿⣿⣿⣿
-    ⣿⣇⠄⡙⣿⣷⣭⣷⠃⣠⠄⠄⡄⠄⠄⠄⢻⣿⣿⣿⣿⣿⣧⣁⣿⡄⠼⡿⣦⣬⣰⣿
-    ⣿⣷⣥⣴⣿⣿⣿⣿⠷⠲⠄⢠⠄⡆⠄⠄⠄⡨⢿⣿⣿⣿⣿⣿⣎⠐⠄⠈⣙⣩⣿⣿
-    ⣿⣿⣿⣿⣿⣿⢟⠕⠁⠈⢠⢃⢸⣿⣿⣶⡘⠑⠄⠸⣿⣿⣿⣿⣿⣦⡀⡉⢿⣧⣿⣿
-    ⣿⣿⣿⣿⡿⠋⠄⠄⢀⠄⠐⢩⣿⣿⣿⣿⣦⡀⠄⠄⠉⠿⣿⣿⣿⣿⣿⣷⣨⣿⣿⣿
-    ⣿⣿⣿⡟⠄⠄⠄⠄⠄⠋⢀⣼⣿⣿⣿⣿⣿⣿⣿⣶⣦⣀⢟⣻⣿⣿⣿⣿⣿⣿⣿⣿
-    ⣿⣿⣿⡆⠆⠄⠠⡀⡀⠄⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-    ⣿⣿⡿⡅⠄⠄⢀⡰⠂⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ 
-    """)
     spoiler_text = os.environ['cw']
     visibility = os.environ['visibility']
     client_id = os.environ['clientid.secret']
