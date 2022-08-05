@@ -38,33 +38,26 @@ def parse_toot(toot):
         os.kill(pid, signal.SIGTERM)
 
 def get_toots(client, id):
-    try: 
-        i = 0
-        toots = client.account_statuses(id,only_media=False,pinned=False,exclude_replies=True)
-        while toots is not None and len(toots) > 0:
-            for toot in toots:
-                t = parse_toot(toot)
-                if t != None:
-                    yield t
-            toots = client.fetch_next(toots)
-            i += 1
-            print(time.strftime("%H:%M:%S"), " - Getting toots (", i, "...)") 
-    except:
-        print(time.strftime("%H:%M:%S"), " - Failed to get toots!") 
+    i = 0
+    toots = client.account_statuses(id,only_media=False,pinned=False,exclude_replies=False, limit="1")
+    while toots is not None and len(toots) > 1:
+        for toot in toots:
+            t = parse_toot(toot)
+            if t != None:
+                yield t
+        toots = client.fetch_next(toots)
+        i += 1
+        print(time.strftime("%H:%M:%S"), " - Getting toots (",i,")")
 
-def writetoot(client):
-    try:
-        i = 0
-        while True:         
-            # Get toots and store it on file
-            with open(corpus_location, "a") as fp:
-                for f in following:
-                    for t in get_toots(client, f.id):
-                        fp.write(t + "\n")
-                        i += 1                        
-                        print(today, "- Saving toots (", i, ")...")
-    except:
-        print(time.strftime("%H:%M:%S"), " - Failed to save toots!") 
+def write_toot(client):
+    i = 0       
+    # Get toots and store it on file
+    with open(corpus_location, "a") as fp:
+        for f in following:
+            for t in get_toots(client, f.id):
+                fp.write(t + "\n")
+                i += 1                        
+                print(time.strftime("%H:%M:%S"), "- Saving toots (",i,")")
 
 def job(client):
     try: 
@@ -74,12 +67,14 @@ def job(client):
                 model = markovify.NewlineText(fp.read())
                 sentence = None
                 while sentence is None:
-                    sentence = model.make_sentence(tries=1000000000)  
-                status = client.status_post(sentence.replace("\0", "\n"),visibility=visibility,spoiler_text=spoiler_text)
+                    sentence = model.make_sentence(tries=1000000000)
+                    sentence = sentence.replace("\0", "\n")
+                status = client.status_post(sentence,visibility=visibility,spoiler_text=spoiler_text)
                 print(time.strftime("%H:%M:%S"), "- Publishing.... (every", sleep_duration, "s)")
+                print("Next line you're going to say:""", sentence, "")
                 time.sleep(sleep_duration)
     except:
-        print("Toot generation failed !") 
+        print(time.strftime("%H:%M:%S"), "- Toot generation failed !") 
         pid = os.getpid()
         os.kill(pid, signal.SIGTERM)
 
@@ -99,22 +94,42 @@ def reply(client):
                                 reply = sentence.replace("\0", "\n")                  
                                 status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
                                 client.notifications_dismiss(n_id)
-                                print("notif", n_id, "treated")
+                                print(time.strftime("%H:%M:%S"), "Notification ", n_id, "from", n_acct, "treated")
+                                print("Next line you're going to say:" "", reply, "")                                
                                 print(time.strftime("%H:%M:%S"), "- sleeping 60 seconds...")
-                                time.sleep(60)
+                                time.sleep(60)                              
     except:
         print(time.strftime("%H:%M:%S"), "- Reply failed !")
         pid = os.getpid()
         os.kill(pid, signal.SIGTERM)
 
-def getCurrentMemoryUsage():
-    # From: https://stackoverflow.com/a/48397534
-    ''' Memory usage in kB '''
-    with open('/proc/self/status') as f:
-        memusage = f.read().split('VmRSS:')[1].split('\n')[0][:-3]
-    return int(memusage.strip())
-
 if __name__ == "__main__":
+    print(r"""
+   
+   ___ ___   ____  ____   __  _   ___   __ __      ____    ___   ______ 
+  |   |   | /    ||    \ |  |/ ] /   \ |  |  |    |    \  /   \ |      |
+  | _   _ ||  o  ||  D  )|  ' / |     ||  |  |    |  o  )|     ||      |
+  |  \_/  ||     ||    / |    \ |  O  ||  |  |    |     ||  O  ||_|  |_|
+  |   |   ||  _  ||    \ |     ||     ||  :  |    |  O  ||     |  |  |  
+  |   |   ||  |  ||  .  \|  .  ||     | \   /     |     ||     |  |  |  
+  |___|___||__|__||__|\_||__|\_| \___/   \_/      |_____| \___/   |__|  
+                                                                                                       
+                    ⣿⣿⣿⣿⣿⣿⣿⡿⡛⠟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  
+                    ⣿⣿⣿⣿⣿⣿⠿⠨⡀⠄⠄⡘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                    ⣿⣿⣿⣿⠿⢁⠼⠊⣱⡃⠄⠈⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                    ⣿⣿⡿⠛⡧⠁⡴⣦⣔⣶⣄⢠⠄⠄⠹⣿⣿⣿⣿⣿⣿⣿⣤⠭⠏⠙⢿⣿⣿⣿⣿⣿
+                    ⣿⡧⠠⠠⢠⣾⣾⣟⠝⠉⠉⠻⡒⡂⠄⠙⠻⣿⣿⣿⣿⣿⡪⠘⠄⠉⡄⢹⣿⣿⣿⣿
+                    ⣿⠃⠁⢐⣷⠉⠿⠐⠑⠠⠠⠄⣈⣿⣄⣱⣠⢻⣿⣿⣿⣿⣯⠷⠈⠉⢀⣾⣿⣿⣿⣿
+                    ⣿⣴⠤⣬⣭⣴⠂⠇⡔⠚⠍⠄⠄⠁⠘⢿⣷⢈⣿⣿⣿⣿⡧⠂⣠⠄⠸⡜⡿⣿⣿⣿
+                    ⣿⣇⠄⡙⣿⣷⣭⣷⠃⣠⠄⠄⡄⠄⠄⠄⢻⣿⣿⣿⣿⣿⣧⣁⣿⡄⠼⡿⣦⣬⣰⣿
+                    ⣿⣷⣥⣴⣿⣿⣿⣿⠷⠲⠄⢠⠄⡆⠄⠄⠄⡨⢿⣿⣿⣿⣿⣿⣎⠐⠄⠈⣙⣩⣿⣿
+                    ⣿⣿⣿⣿⣿⣿⢟⠕⠁⠈⢠⢃⢸⣿⣿⣶⡘⠑⠄⠸⣿⣿⣿⣿⣿⣦⡀⡉⢿⣧⣿⣿
+                    ⣿⣿⣿⣿⡿⠋⠄⠄⢀⠄⠐⢩⣿⣿⣿⣿⣦⡀⠄⠄⠉⠿⣿⣿⣿⣿⣿⣷⣨⣿⣿⣿
+                    ⣿⣿⣿⡟⠄⠄⠄⠄⠄⠋⢀⣼⣿⣿⣿⣿⣿⣿⣿⣶⣦⣀⢟⣻⣿⣿⣿⣿⣿⣿⣿⣿
+                    ⣿⣿⣿⡆⠆⠄⠠⡀⡀⠄⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                    ⣿⣿⡿⡅⠄⠄⢀⡰⠂⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  
+    """)
+    print(time.strftime("%H:%M:%S"), "- Bot started !")
     spoiler_text = os.environ['cw']
     visibility = os.environ['visibility']
     client_id = os.environ['clientid.secret']
@@ -122,18 +137,16 @@ if __name__ == "__main__":
     access_token = os.environ['accesstoken.secret']
     sleep_duration = os.environ['sleep_duration']    
     corpus_location = os.environ['corpus_location']
-    api_base_url = os.environ['instance']    
+    api_base_url = os.environ['instance']   
     sleep_duration=float(sleep_duration)
     client = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
     me = client.account_verify_credentials()
     following = client.account_following(me.id) 
-    # threading
-    get = threading.Thread(target=writetoot, args=(client,))     
+    # threading      
     answer = threading.Thread(target=reply, args=(client,))
     generate = threading.Thread(target=job, args=(client,))
-    get.start()
     answer.start()
     generate.start()
     generate.join()
     answer.join()
-    get.join()
+    write_toot(client)
