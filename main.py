@@ -1,6 +1,10 @@
-from mastodon import Mastodon, StreamListener
+from mastodon import Mastodon
 from bs4 import BeautifulSoup
 import re,os, markovify, json, threading, random, time, datetime, threading, signal
+from typing import Any, Optional, Union
+
+class MastodonConfigurationError(Exception):
+    pass
 
 def parse_toot(toot):
     try: 
@@ -60,25 +64,24 @@ def write_toot(client):
                 print(time.strftime("%H:%M:%S"), "- Saving toots (",i,")")
 
 def job(client):
-    try: 
-        while True:    
-            # publishing toot
-            with open(corpus_location) as fp:
-                model = markovify.NewlineText(fp.read())
-                sentence = None
-                while sentence is None:
-                    sentence = model.make_sentence(tries=1000000000)
-                    sentence = sentence.replace("\0", "\n")
-                status = client.status_post(sentence,visibility=visibility,spoiler_text=spoiler_text)
-                print(time.strftime("%H:%M:%S"), "- Publishing.... (every", sleep_duration, "s)")
-                print("Next line you're going to say:""", sentence, "")
-                time.sleep(sleep_duration)
+    try:
+        while True:
+                with open(corpus_location) as fp:
+                    model = markovify.NewlineText(fp.read())
+                    sentence = None               
+                    while sentence is None:
+                        sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
+                        sentence = sentence.replace("\0", "\n")                  
+                        status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
+                        print("Next line you're going to say:" "", sentence, "")                                
+                        print(time.strftime("%H:%M:%S"), "- Sleeping", sleep_duration, " seconds...")
+                        time.sleep(sleep_duration)                              
     except:
-        print(time.strftime("%H:%M:%S"), "- Toot generation failed !") 
+        print(time.strftime("%H:%M:%S"), "- Toot generation failed !")
         pid = os.getpid()
         os.kill(pid, signal.SIGTERM)
 
-def reply(client):
+def answer(client):
     try:
         while True:
                 notifications = client.notifications()
@@ -90,13 +93,13 @@ def reply(client):
                             model = markovify.NewlineText(fp.read())
                             sentence = None               
                             while sentence is None:
-                                sentence = model.make_sentence(tries=10000000)
+                                sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
                                 reply = sentence.replace("\0", "\n")                  
                                 status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
                                 client.notifications_dismiss(n_id)
                                 print(time.strftime("%H:%M:%S"), "Notification ", n_id, "from", n_acct, "treated")
                                 print("Next line you're going to say:" "", reply, "")                                
-                                print(time.strftime("%H:%M:%S"), "- sleeping 60 seconds...")
+                                print(time.strftime("%H:%M:%S"), "- Sleeping 60 seconds...")
                                 time.sleep(60)                              
     except:
         print(time.strftime("%H:%M:%S"), "- Reply failed !")
@@ -104,49 +107,30 @@ def reply(client):
         os.kill(pid, signal.SIGTERM)
 
 if __name__ == "__main__":
-    print(r"""
-   
-   ___ ___   ____  ____   __  _   ___   __ __      ____    ___   ______ 
-  |   |   | /    ||    \ |  |/ ] /   \ |  |  |    |    \  /   \ |      |
-  | _   _ ||  o  ||  D  )|  ' / |     ||  |  |    |  o  )|     ||      |
-  |  \_/  ||     ||    / |    \ |  O  ||  |  |    |     ||  O  ||_|  |_|
-  |   |   ||  _  ||    \ |     ||     ||  :  |    |  O  ||     |  |  |  
-  |   |   ||  |  ||  .  \|  .  ||     | \   /     |     ||     |  |  |  
-  |___|___||__|__||__|\_||__|\_| \___/   \_/      |_____| \___/   |__|  
-                                                                                                       
-                    ⣿⣿⣿⣿⣿⣿⣿⡿⡛⠟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  
-                    ⣿⣿⣿⣿⣿⣿⠿⠨⡀⠄⠄⡘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                    ⣿⣿⣿⣿⠿⢁⠼⠊⣱⡃⠄⠈⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                    ⣿⣿⡿⠛⡧⠁⡴⣦⣔⣶⣄⢠⠄⠄⠹⣿⣿⣿⣿⣿⣿⣿⣤⠭⠏⠙⢿⣿⣿⣿⣿⣿
-                    ⣿⡧⠠⠠⢠⣾⣾⣟⠝⠉⠉⠻⡒⡂⠄⠙⠻⣿⣿⣿⣿⣿⡪⠘⠄⠉⡄⢹⣿⣿⣿⣿
-                    ⣿⠃⠁⢐⣷⠉⠿⠐⠑⠠⠠⠄⣈⣿⣄⣱⣠⢻⣿⣿⣿⣿⣯⠷⠈⠉⢀⣾⣿⣿⣿⣿
-                    ⣿⣴⠤⣬⣭⣴⠂⠇⡔⠚⠍⠄⠄⠁⠘⢿⣷⢈⣿⣿⣿⣿⡧⠂⣠⠄⠸⡜⡿⣿⣿⣿
-                    ⣿⣇⠄⡙⣿⣷⣭⣷⠃⣠⠄⠄⡄⠄⠄⠄⢻⣿⣿⣿⣿⣿⣧⣁⣿⡄⠼⡿⣦⣬⣰⣿
-                    ⣿⣷⣥⣴⣿⣿⣿⣿⠷⠲⠄⢠⠄⡆⠄⠄⠄⡨⢿⣿⣿⣿⣿⣿⣎⠐⠄⠈⣙⣩⣿⣿
-                    ⣿⣿⣿⣿⣿⣿⢟⠕⠁⠈⢠⢃⢸⣿⣿⣶⡘⠑⠄⠸⣿⣿⣿⣿⣿⣦⡀⡉⢿⣧⣿⣿
-                    ⣿⣿⣿⣿⡿⠋⠄⠄⢀⠄⠐⢩⣿⣿⣿⣿⣦⡀⠄⠄⠉⠿⣿⣿⣿⣿⣿⣷⣨⣿⣿⣿
-                    ⣿⣿⣿⡟⠄⠄⠄⠄⠄⠋⢀⣼⣿⣿⣿⣿⣿⣿⣿⣶⣦⣀⢟⣻⣿⣿⣿⣿⣿⣿⣿⣿
-                    ⣿⣿⣿⡆⠆⠄⠠⡀⡀⠄⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                    ⣿⣿⡿⡅⠄⠄⢀⡰⠂⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  
-    """)
     print(time.strftime("%H:%M:%S"), "- Bot started !")
-    spoiler_text = os.environ['cw']
-    visibility = os.environ['visibility']
-    client_id = os.environ['clientid.secret']
-    client_secret = os.environ['clientsecret.secret']
-    access_token = os.environ['accesstoken.secret']
-    sleep_duration = os.environ['sleep_duration']    
-    corpus_location = os.environ['corpus_location']
-    api_base_url = os.environ['instance']   
-    sleep_duration=float(sleep_duration)
-    client = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
-    me = client.account_verify_credentials()
-    following = client.account_following(me.id) 
-    # threading      
-    answer = threading.Thread(target=reply, args=(client,))
-    generate = threading.Thread(target=job, args=(client,))
-    answer.start()
-    generate.start()
-    generate.join()
-    answer.join()
-    write_toot(client)
+    client_secret: Union[str, Any] = os.environ.get("client_secret", default=None)
+    client_id: Union[str, Any] = os.environ.get("client_id", default=None)
+    access_token: Union[str, Any] = os.environ.get("access_token", default=None)
+    api_base_url: Union[str, Any] = os.environ.get("instance", default="https://botsin.space") 
+    spoiler_text: Union[str, Any] = os.environ.get("cw", default="markov bot: test")
+    visibility: Union[str, Any] = os.environ.get("visibility", default="private")
+    sleep_duration: Union[float, Any] = os.environ.get("sleep_duration", default="14400")
+    corpus_location: Union[str, Any] = os.environ.get("corpus_location", default="data/corpus.txt")
+    tries = int(os.environ.get("tries", default="10000"))
+    max_chars = int(os.environ.get("max_chars", default="500"))
+    min_chars = int(os.environ.get("max_chars", default="5"))
+
+    if client_secret is None or client_id is None or access_token is None:
+        raise MastodonConfigurationError
+    else:
+        client = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
+        me = client.account_verify_credentials()
+        following = client.account_following(me.id) 
+        # threading      
+        answer = threading.Thread(target=answer, args=(client,))
+        generate = threading.Thread(target=job, args=(client,))
+        answer.start()
+        generate.start()
+        generate.join()
+        answer.join()
+        write_toot(client)

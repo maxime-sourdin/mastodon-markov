@@ -15,6 +15,23 @@ I refer you to this [tutorial](https://botwiki.org/resource/tutorial/how-to-make
 Be careful, you have to give the bot the **write** and **read** rights.
 
 ## How to deploy it
+
+### Needed Variables
+
+Used variables ------- Mastodon.py variables ------- Default value
+
+- client_secret -> client_secret
+- client_id -> client_id
+- access_token -> access_token
+- instance -> api_base_url -> default: [https://botsin.space](https://botsin.space)
+- cw -> spoiler_text -> default: "markov bot: test"
+- visiblity -> visiblity -> default: "private"
+- sleep_duration -> sleep_duration -> default: "14400"
+- corpus_location -> corpus_location -> default: "data/corpus.txt"
+- tries -> tries -> default: "10000"
+- max_chars -> max_chars -> default: "500"
+- min_chars -> min_chars -> default: "5"
+
 ### Via a Helm Chart
 I have provided [a zipped example in the repo](https://github.com/maxime-sourdin/mastodon-markov/blob/main/helm.zip).
 
