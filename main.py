@@ -1,6 +1,6 @@
 from mastodon import Mastodon
 from bs4 import BeautifulSoup
-import re,os, markovify, json, threading, random, time, datetime, threading, signal
+import re,os, markovify, json, threading, random, time, datetime, signal
 from typing import Any, Optional, Union
 
 class MastodonConfigurationError(Exception):
@@ -64,48 +64,38 @@ def write_toot(client):
                 print(time.strftime("%H:%M:%S"), "- Saving toots (",i,")")
 
 def job(client):
-    try:
-        while True:
-                with open(corpus_location) as fp:
-                    model = markovify.NewlineText(fp.read())
-                    sentence = None               
-                    while sentence is None:
-                        sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
-                        sentence = sentence.replace("\0", "\n")                  
-                        status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
-                        print("Next line you're going to say:" "", sentence, "")                                
-                        print(time.strftime("%H:%M:%S"), "- Sleeping", sleep_duration, " seconds...")
-                        time.sleep(sleep_duration)                              
-    except:
-        print(time.strftime("%H:%M:%S"), "- Toot generation failed !")
-        pid = os.getpid()
-        os.kill(pid, signal.SIGTERM)
+    while True:
+        with open(corpus_location) as fp:
+            model = markovify.NewlineText(fp.read())
+            sentence = None               
+            while sentence is None:
+                sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
+                sentence = sentence.replace("\0", "\n")          
+        status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
+        print("Next line you're going to say:" "", sentence, "")                                
+        print(time.strftime("%H:%M:%S"), "- Sleeping", sleep_duration, " seconds...")
+        time.sleep(sleep_duration)                              
 
 def answer(client):
-    try:
-        while True:
-                notifications = client.notifications()
-                for notification in notifications:            
-                    n_id = notification["id"]
-                    n_acct = notification.account.acct
-                    if notification.type == "mention":
-                        with open(corpus_location) as fp:
-                            model = markovify.NewlineText(fp.read())
-                            sentence = None               
-                            while sentence is None:
-                                sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
-                                reply = sentence.replace("\0", "\n")                  
-                                status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
-                                client.notifications_dismiss(n_id)
-                                print(time.strftime("%H:%M:%S"), "Notification ", n_id, "from", n_acct, "treated")
-                                print("Next line you're going to say:" "", reply, "")                                
-                                print(time.strftime("%H:%M:%S"), "- Sleeping 60 seconds...")
-                                time.sleep(60)                              
-    except:
-        print(time.strftime("%H:%M:%S"), "- Reply failed !")
-        pid = os.getpid()
-        os.kill(pid, signal.SIGTERM)
-
+    while True:
+            notifications = client.notifications()
+            for notification in notifications:            
+                n_id = notification["id"]
+                n_acct = notification.account.acct
+                if notification.type == "mention":
+                    with open(corpus_location) as fp:
+                        model = markovify.NewlineText(fp.read())
+                        sentence = None               
+                        while sentence is None:
+                            sentence = model.make_sentence(tries=10000000)
+                            reply = sentence.replace("\0", "\n")                  
+                            status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
+                            client.notifications_dismiss(n_id)
+                            print("Notification", n_id, "from", n_acct, "treated")
+                            print("Next line you're going to say:" "", reply, "")
+                            print("Sleeping 60 seconds...")
+                            time.sleep(60)
+  
 if __name__ == "__main__":
     print(time.strftime("%H:%M:%S"), "- Bot started !")
     client_secret: Union[str, Any] = os.environ.get("client_secret", default=None)
@@ -114,23 +104,23 @@ if __name__ == "__main__":
     api_base_url: Union[str, Any] = os.environ.get("instance", default="https://botsin.space") 
     spoiler_text: Union[str, Any] = os.environ.get("cw", default="markov bot: test")
     visibility: Union[str, Any] = os.environ.get("visibility", default="private")
-    sleep_duration: Union[float, Any] = os.environ.get("sleep_duration", default="14400")
+    sleep_duration= int(os.environ.get("sleep_duration", default="14400"))
     corpus_location: Union[str, Any] = os.environ.get("corpus_location", default="data/corpus.txt")
     tries = int(os.environ.get("tries", default="10000"))
     max_chars = int(os.environ.get("max_chars", default="500"))
     min_chars = int(os.environ.get("max_chars", default="5"))
-
     if client_secret is None or client_id is None or access_token is None:
         raise MastodonConfigurationError
     else:
         client = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
         me = client.account_verify_credentials()
-        following = client.account_following(me.id) 
-        # threading      
+        following = client.account_following(me.id)
         answer = threading.Thread(target=answer, args=(client,))
         generate = threading.Thread(target=job, args=(client,))
+        write = threading.Thread(target=write_toot, args=(client,))
         answer.start()
         generate.start()
+        write.start()
         generate.join()
-        answer.join()
-        write_toot(client)
+        answer.join()        
+        write.join()

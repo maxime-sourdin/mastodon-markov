@@ -1,6 +1,4 @@
 from mastodon import Mastodon
-spoiler_text = os.environ['cw']
-visibility = os.environ['visibility']
 client_id = os.environ['client_id']
 client_secret = os.environ['client_secret']
 access_token = os.environ['access_token']
