@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "markov.fullname" . }}
+  labels:
+    {{- include "markov.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "markov.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "markov.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "markov.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: bot
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # command: ["sh", "-c", "tail -f /dev/null"]          
+          command: ["/bin/bash"]
+          args: ["-c", "python /ebooks/main.py"]
+          env:
+            - name: visibility
+              value: "unlisted"
+            - name: corpus_location
+              value: "/data/corpus.txt"
+            - name: spoiler_text
+              value: "markovbot"
+            - name: frequency
+              value: "2"
+            - name: api_base_url
+              value: "https://botsin.space"
+          envFrom:
+          - secretRef:
+              name: bot                       
+          volumeMounts:
+          - mountPath: /data/
+            name: mastodon-markov
+            subPath: bot
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}                                      
+      volumes:
+        - name: mastodon-markov
+          persistentVolumeClaim:
+            claimName: mastodon-markov
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

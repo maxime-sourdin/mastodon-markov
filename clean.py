@@ -2,7 +2,7 @@ from mastodon import Mastodon
 client_id = os.environ['client_id']
 client_secret = os.environ['client_secret']
 access_token = os.environ['access_token']
-api_base_url = os.environ['instance']
+api_base_url = os.environ['api_base_url']
 
 Mastodon = Mastodon(client_id=client_id,client_secret=client_secret,access_token=access_token,api_base_url=api_base_url)
 account = Mastodon.account_verify_credentials()
