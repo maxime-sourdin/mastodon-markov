@@ -82,7 +82,7 @@ def job(client):
             model = markovify.NewlineText(fp.read())
             sentence = None               
             while sentence is None:
-                sentence = model.make_sentence(tries=10000000)
+                sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
                 sentence = sentence.replace("\0", "\n")                  
                 status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
                 print(time.strftime("%H:%M:%S"), " - Next line you're going to say:" "", sentence, "")
@@ -103,7 +103,7 @@ def answer(client):
                     model = markovify.NewlineText(fp.read())
                     sentence = None               
                     while sentence is None:
-                        sentence = model.make_sentence(tries=10000000)
+                        sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
                         reply = sentence.replace("\0", "\n")                  
                         status = client.status_reply(notification.status,reply, in_reply_to_id = n_id, visibility = visibility, spoiler_text=spoiler_text)
                         client.notifications_dismiss(n_id)
