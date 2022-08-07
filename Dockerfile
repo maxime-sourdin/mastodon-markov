@@ -1,4 +1,4 @@
-FROM proxy-docker.sourdin.ovh/python:3-alpine
+FROM proxy-docker.sourdin.ovh/python:3.9.13-alpine3.16
 WORKDIR /ebooks/
 USER root
 RUN apk update \
@@ -10,4 +10,4 @@ USER 1000
 COPY --chown=worker:worker main.py /ebooks/main.py
 COPY --chown=worker:worker clean.py /ebooks/clean.py
 ENV PATH $PATH:$HOME/.local/bin
-RUN pip3 install --no-cache-dir Mastodon.py markovify beautifulsoup4
+RUN pip3 install --no-cache-dir Mastodon.py markovify beautifulsoup4 schedule
