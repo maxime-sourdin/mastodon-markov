@@ -38,14 +38,14 @@ def parse_toot(toot):
             # return {"text": text, "mentions": mentions, "links": links}
             return "\0".join(list(text))
             print(time.strftime("%H:%M:%S"), " - Parsing toots...")
-            print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)        
+            print(time.strftime("%H:%M:%S"), " - Remaining requests:", client.ratelimit_remaining)        
             return
         else:
-            print(time.strftime("%H:%M:%S"), " - Low remaining request:", client.ratelimit_remaining)          
+            print(time.strftime("%H:%M:%S"), " - Low remaining requests:", client.ratelimit_remaining)          
             time.sleep(120)            
     except:
         print(time.strftime("%H:%M:%S"), " - Failed to parse toots!")
-        print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)          
+        print(time.strftime("%H:%M:%S"), " - Remaining requests:", client.ratelimit_remaining)          
 
 def get_toots(client, id):
     if client.ratelimit_remaining > 10:
@@ -59,10 +59,10 @@ def get_toots(client, id):
             toots = client.fetch_next(toots)
             i += 1
             print(time.strftime("%H:%M:%S"), " - Getting toots (",i,")")
-            print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)          
+            print(time.strftime("%H:%M:%S"), " - Remaining requests:", client.ratelimit_remaining)          
             return
     else:
-        print(time.strftime("%H:%M:%S"), " - Low remaining request:", client.ratelimit_remaining)          
+        print(time.strftime("%H:%M:%S"), " - Low remaining requests:", client.ratelimit_remaining)          
 
 def write_toot(client):    
     i = 0       
@@ -73,25 +73,25 @@ def write_toot(client):
                 fp.write(t + "\n")
                 i += 1                        
                 print(time.strftime("%H:%M:%S"), "- Saving toots (",i,")")
-                print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)                  
+                print(time.strftime("%H:%M:%S"), " - Remaining requests:", client.ratelimit_remaining)                  
                 return
 
 def job(client):
-    if client.ratelimit_remaining > 10:        
+    if client.ratelimit_remaining > 10:            
         with open(corpus_location) as fp:
             model = markovify.NewlineText(fp.read())
             sentence = None               
             while sentence is None:
-                sentence = model.make_short_sentence(tries=tries, max_chars=max_chars, min_chars=min_chars)
-                sentence = sentence.replace("\0", "\n")          
-        status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
-        print("Next line you're going to say:" "", sentence, "")                                
-        print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)      
-        return                          
+                sentence = model.make_sentence(tries=10000000)
+                sentence = sentence.replace("\0", "\n")                  
+                status = client.status_post(sentence, visibility = visibility, spoiler_text=spoiler_text)
+                print(time.strftime("%H:%M:%S"), " - Next line you're going to say:" "", sentence, "")
+                print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)  
+                return
     else:
-        print(time.strftime("%H:%M:%S"), " - Low remaining request:", client.ratelimit_remaining)          
-        time.sleep(120)
-
+        print(time.strftime("%H:%M:%S"), " - Low remaining requests:", client.ratelimit_remaining)          
+        time.sleep(120)  
+        
 def answer(client):
     if client.ratelimit_remaining > 10:            
         notifications = client.notifications()
@@ -109,11 +109,10 @@ def answer(client):
                         client.notifications_dismiss(n_id)
                         print("Notification", n_id, "from", n_acct, "treated")
                         print("Next line you're going to say:" "", reply, "")
-                        print("Sleeping 60 seconds...")
-                        print(time.strftime("%H:%M:%S"), " - Remaining request:", client.ratelimit_remaining)  
+                        print(time.strftime("%H:%M:%S"), " - Remaining requests:", client.ratelimit_remaining)  
                         return
     else:
-        print(time.strftime("%H:%M:%S"), " - Low remaining request:", client.ratelimit_remaining)          
+        print(time.strftime("%H:%M:%S"), " - Low remaining requests:", client.ratelimit_remaining)          
         time.sleep(120)
                         
 if __name__ == "__main__":
