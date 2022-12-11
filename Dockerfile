@@ -1,4 +1,4 @@
-FROM proxy-docker.sourdin.ovh/python:3.9.15-alpine3.16
+FROM proxy-docker.sourdin.ovh/python:3.9.16-alpine3.17
 WORKDIR /ebooks/
 USER root
 RUN apk update \
